@@ -6,6 +6,6 @@ The application is made up of two sub-components:
 2. *host* - A native Python application that acts as a bridge by enabling message exchange between the CB-FLTS and the *app*. Command requests from the CB-FLTS are sent to the *host* which then repackages them to a well-defined structure before sending them to the *app* for processing. The host is based on Google Chrome's [Native Messaging](https://developer.chrome.com/extensions/nativeMessaging) framework.
 
 See the illustration below:
-![alt text](cb_Illustration.png "Chrome bridge message exchange")
+![alt text](cb_illustration.png "Chrome bridge message exchange")
 
 The requests and responses are in JSON format.
