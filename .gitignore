@@ -1,0 +1,11 @@
+#PyDev files
+*.project
+*.pydevproject
+.settings
+
+#PyCharm files
+.idea
+
+#Compiled Python Files
+*.pyc
+*.zip
