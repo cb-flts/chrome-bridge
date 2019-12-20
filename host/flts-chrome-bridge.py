@@ -23,114 +23,11 @@ from ConfigParser import (
   NoSectionError
 )
 
-
-class BaseMessage(object):
-    """
-    Base class for CB-FLTS message requests and responses.
-    """
-    def __init__(self, **kwargs):
-        prop_dict = kwargs.get('prop_dict', {})
-        if len(prop_dict) > 0:
-            self._load_prop_from_dict(prop_dict)
-
-        # Name that uniquely identifies the app generating the message
-        self.client_source = ''
-        self.id = ''
-        self.message_type = -1
-        self.data = {}
-
-    def _prop_mapping(self):
-        # Contains property names for corresponding representation in JSON.
-        return {
-            'id': 'requestId',
-            'client_source': 'source',
-            'message_type': 'type',
-            'data': 'data'
-        }
-
-    def to_json(self):
-        """
-        :return: Returns the object data in JSON format.
-        :rtype: str
-        """
-        json_dict = {}
-        for prop, pseudo in self._prop_mapping().iteritems():
-            if hasattr(self, prop):
-                json_dict[pseudo] = getattr(self, prop)
-
-        return json.dumps(json_dict, separators=(',',':'))
-
-    def load_from_json(self, json_obj):
-        """
-        Sets the object properties based on the given JSON object.
-        :param json_obj: Object data in JSON format.
-        :type json_obj: str
-        """
-        prop_vals = json.loads(json_obj)
-        self._load_prop_from_dict(prop_vals)
-
-    @staticmethod
-    def source(json_obj):
-        """
-        Extracts the client source from the JSON object.
-        :param json_obj: Object data in JSON format.
-        :type json_obj: str
-        :return: Return the client source from the message.
-        :rtype: str
-        """
-        msg = BaseMessage()
-        msg.load_from_json(json_obj)
-
-        return msg.client_source
-
-    def _load_prop_from_dict(self, prop_vals):
-        for prop, pseudo in self._prop_mapping().iteritems():
-            if pseudo in prop_vals:
-                if hasattr(self, prop):
-                    setattr(self, prop, prop_vals[pseudo])
-
-    def __str__(self):
-        return self.to_json()
-
-
-class ChromeRequest(BaseMessage):
-    """
-    Contains information that will be sent to Chrome through the bridge.
-    """
-    # Message request types
-    RENAME, CLOSE, EXIT = range(0, 3)
-
-    def __init__(self, **kwargs):
-        super(ChromeRequest, self).__init__(**kwargs)
-        self.client_source = 'flts'
-        self.id = str(uuid4())
-
-
-class ChromeResponse(BaseMessage):
-    """
-    Contains information that will be sent back to the CB-FLTS through the
-    bridge.
-    """
-    SUCCESS, ERROR, UNKNOWN = range(0, 3)
-
-    def __init__(self, **kwargs):
-        super(ChromeResponse, self).__init__(**kwargs)
-        self.client_source = 'chrome'
-        self.message_type = ChromeResponse.UNKNOWN
-
-    def is_successful(self):
-        """
-        :return: Returns True if a response was successfully received else
-        False. False might mean an error or the response type is unknown.
-        """
-        return self.message_type == ChromeResponse.SUCCESS
-
-
-class ChromeMessageException(Exception):
-    """
-    For exceptions raised in sending requests and responses to Chrome.
-    """
-    pass
+from client import (
+    BaseMessage,
+    ChromeRequest,
+    ChromeResponse
+)
 
 
 msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
@@ -177,7 +74,6 @@ def read_thread_func(socket_queue, logger_obj):
     while 1:
         # Read the message length (first 4 bytes).
         text_length_bytes = sys.stdin.read(4)
-
         if len(text_length_bytes) == 0:
             if socket_queue:
                 socket_queue.put(None)
